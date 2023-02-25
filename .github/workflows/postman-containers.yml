@@ -10,8 +10,8 @@ env:
   NOME_IMAGEM: apifinancas-newman
   CAMINHO_PROJETO_WEBAPP: ./APIFinancas
   CAMINHO_TESTES: ./Tests
-  NOME_APLICACAO: apifinancas
-
+  IMAGE_DOCKERHUB: ${{ secrets.DOCKERHUB_USERNAME }}/apifinancas-dotnet7-gha
+  
 jobs:
   build-tests-push:
 
@@ -22,17 +22,11 @@ jobs:
     - name: Build de imagem
       run: |
         cd ${{ env.CAMINHO_PROJETO_WEBAPP }}
-        docker build . --file Dockerfile --tag ${{ secrets.AZURECR_REGISTRY }}/${{ env.NOME_IMAGEM }}:latest
+        docker build . --file Dockerfile --tag ${{ env.IMAGE_DOCKERHUB }}:latest
     - name: Criação de container para testes com a API
       run: |
         docker run --name api-testes -p 5000:80 -d ${{ secrets.AZURECR_REGISTRY }}/${{ env.NOME_IMAGEM }}:latest
         docker container ls
-
-    - name: Configurar porta da API no arquivo com os testes
-      run: |
-        cd ${{ env.CAMINHO_TESTES }}
-        sed -i 's/5000/1234/' CalculoJurosCompostos.postman_collection.json
-        
     - name: Execução dos testes da API com Newman, além de geração de HTML Report + XML do JUnit
       if: always()
       run: |
@@ -46,7 +40,7 @@ jobs:
         cd newman
         ls
     - name: Criar Test Summary
-      uses: test-summary/action@v1.0
+      uses: test-summary/action@v2.1
       env:
         CAMINHO_RESULTADO_TESTES: ${{ env.CAMINHO_TESTES }}/newman/*.xml
       if: always()
@@ -61,3 +55,12 @@ jobs:
         name: resultado-testes
         path: ${{ env.CAMINHO_RESULTADO_TESTES }}
         retention-days: 30
+    - name: Login no Docker Hub
+      uses: docker/login-action@v2.1.0
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_PASSWORD }}
+    - name: Geração de tag com número do Build e Push no Docker Hub
+      run: |
+        docker tag ${{ env.IMAGE_DOCKERHUB }}:latest ${{ env.IMAGE_DOCKERHUB }}:$GITHUB_RUN_NUMBER
+        docker push --all-tags ${{ env.IMAGE_DOCKERHUB }}
