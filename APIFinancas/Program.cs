@@ -43,21 +43,15 @@ app.MapGet("/calculofinanceiro/juroscompostos",
            $"Valor do emprestimo: {valorEmprestimo}|" +
            $"%Taxa de Juros: {percTaxa}");
 
-        if (valorEmprestimo <= 0 || numMeses <= 0 || percTaxa <= 0)
-            throw new Exception("Parâmetros para cálculo inválidos!");
-        // FIXME: Codigo comentado para simulacaoo de falhas em testes automatizados
-        /*if (valorEmprestimo <= 0)
+        if (valorEmprestimo <= 0)
             return GerarResultParamInvalido("Valor do Emprestimo");
         if (numMeses <= 0)
             return GerarResultParamInvalido("Numero de Meses");
         if (percTaxa <= 0)
-            return GerarResultParamInvalido("Percentual da Taxa de Juros");*/
+            return GerarResultParamInvalido("Percentual da Taxa de Juros");
 
-        // FIXME: Simulação de falha
-        var valorFinalJuros =
-            valorEmprestimo * Math.Pow(1 + (percTaxa / 100), numMeses);
-        //var valorFinalJuros = Math.Round(
-        //    valorEmprestimo * Math.Pow(1 + (percTaxa / 100), numMeses), 2);
+        var valorFinalJuros = Math.Round(
+            valorEmprestimo * Math.Pow(1 + (percTaxa / 100), numMeses), 2);
         app.Logger.LogInformation($"Valor Final com Juros: {valorFinalJuros}");
 
         return TypedResults.Ok(new Emprestimo()
