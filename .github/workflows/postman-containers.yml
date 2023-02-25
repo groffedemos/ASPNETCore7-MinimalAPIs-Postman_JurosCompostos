@@ -7,7 +7,6 @@ on:
     branches: [ "main" ]
 
 env:
-  NOME_IMAGEM: apifinancas-newman
   CAMINHO_PROJETO_WEBAPP: ./APIFinancas
   CAMINHO_TESTES: ./Tests
   IMAGE_DOCKERHUB: ${{ secrets.DOCKERHUB_USERNAME }}/apifinancas-dotnet7-gha
@@ -25,7 +24,7 @@ jobs:
         docker build . --file Dockerfile --tag ${{ env.IMAGE_DOCKERHUB }}:latest
     - name: Criação de container para testes com a API
       run: |
-        docker run --name api-testes -p 5000:80 -d ${{ secrets.AZURECR_REGISTRY }}/${{ env.NOME_IMAGEM }}:latest
+        docker run --name api-testes -p 5000:80 -d ${{ env.IMAGE_DOCKERHUB }}:latest
         docker container ls
     - name: Execução dos testes da API com Newman, além de geração de HTML Report + XML do JUnit
       if: always()
@@ -33,7 +32,7 @@ jobs:
         cd ${{ env.CAMINHO_TESTES }}
         echo "** Versão Global do Newman **"
         newman -v
-        npm install newman-reporter-htmlextra@1.22.9
+        npm install newman-reporter-htmlextra@1.22.11
         npm install newman-reporter-junitfullreport@1.0.4
         npx newman run CalculoJurosCompostos.postman_collection.json -d data-tests.json -r cli,htmlextra,junitfullreport        
         echo "** Arquivos + diretórios gerados **"
