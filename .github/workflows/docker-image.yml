@@ -63,3 +63,12 @@ jobs:
       run: |
         docker tag ${{ env.IMAGE_DOCKERHUB }}:latest ${{ env.IMAGE_DOCKERHUB }}:$GITHUB_RUN_NUMBER
         docker push --all-tags ${{ env.IMAGE_DOCKERHUB }}
+  
+  deployment:
+
+    runs-on: ubuntu-latest
+    needs: [build-tests-push]
+
+    steps:
+    - name: Acertar aqui o Deployment
+      run: echo "Testes..."
